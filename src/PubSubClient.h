@@ -79,12 +79,12 @@
 #  ifdef __has_include
 #    if __has_include(<functional>)
 #      include <functional>
-#      define MQTT_CALLBACK_SIGNATURE std::function<void(char*, uint8_t*, unsigned int)> callback
+#      define MQTT_CALLBACK_SIGNATURE std::function<void(char*, uint8_t*, size_t)> callback
 #    else
-#      define MQTT_CALLBACK_SIGNATURE void (*callback)(char*, uint8_t*, unsigned int)
+#      define MQTT_CALLBACK_SIGNATURE void (*callback)(char*, uint8_t*, size_t)
 #    endif
 #  else
-#    define MQTT_CALLBACK_SIGNATURE void (*callback)(char*, uint8_t*, unsigned int)
+#    define MQTT_CALLBACK_SIGNATURE void (*callback)(char*, uint8_t*, size_t)
 #  endif
 
 #define CHECK_STRING_LENGTH(l,s) if (l+2+strnlen(s, this->bufferSize) > this->bufferSize) {_client->stop();return false;}
