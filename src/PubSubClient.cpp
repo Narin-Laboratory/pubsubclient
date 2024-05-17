@@ -159,9 +159,7 @@ PubSubClient::PubSubClient(const char* domain, uint16_t port, MQTT_CALLBACK_SIGN
 }
 
 PubSubClient::~PubSubClient() {
-    #ifndef USE_STATIC_MEM
-    free(this->buffer);
-    #endif
+  free(this->buffer);
 }
 
 boolean PubSubClient::connect(const char *id) {
@@ -369,8 +367,8 @@ uint32_t PubSubClient::readPacket(uint8_t* lengthLength) {
     return len;
 }
 
-bool PubSubClient::loop_read() {
-    if (_client == nullptr) {
+boolean PubSubClient::loop_read() {
+    if (_client == NULL) {
         return false;
     }
     if (!_client->available()) {
@@ -389,22 +387,14 @@ bool PubSubClient::loop_read() {
         case MQTTPUBLISH: 
         {
             if (callback) {
-                const bool msgId_present = (buffer[0]&0x06) == MQTTQOS1;
+                const boolean msgId_present = (buffer[0]&0x06) == MQTTQOS1;
                 const uint16_t tl_offset = llen+1;
                 const uint16_t tl = (buffer[tl_offset]<<8)+buffer[tl_offset+1]; /* topic length in bytes */
                 const uint16_t topic_offset = tl_offset+2;
                 const uint16_t msgId_offset = topic_offset+tl;
                 const uint16_t payload_offset = msgId_present ? msgId_offset+2 : msgId_offset;
-				if ((payload_offset) >= MQTT_MAX_PACKET_SIZE) {
-#ifdef DEBUG_MQTT
-				Serial.print("|ERROR: payload_offset|");Serial.println(payload_offset);
-				Serial.println("Payload:");	
-				Serial.write(buffer, strnlen((const char*)buffer, MQTT_MAX_PACKET_SIZE));
-				Serial.println();Serial.println(":end");
-#endif
-				return false;}
+				if ((payload_offset) >= this->bufferSize) {return false;}
                 if (len < payload_offset) {return false;}
-            
                 memmove(buffer+topic_offset-1,buffer+topic_offset,tl); /* move topic inside buffer 1 byte to front */
                 buffer[topic_offset-1+tl] = 0; /* end the topic as a 'C' string with \x00 */
                 char *topic = (char*) buffer+topic_offset-1;
@@ -455,7 +445,7 @@ boolean PubSubClient::loop() {
     loop_read();
     if (connected()) {
         unsigned long t = millis();
-        if ((t - lastInActivity > MQTT_KEEPALIVE*1000UL) || (t - lastOutActivity > MQTT_KEEPALIVE*1000UL)) {
+        if ((t - lastInActivity > this->keepAlive*1000UL) || (t - lastOutActivity > this->keepAlive*1000UL)) {
             if (pingOutstanding) {
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
@@ -583,7 +573,7 @@ boolean PubSubClient::beginPublish(const char* topic, unsigned int plength, bool
 }
 
 int PubSubClient::endPublish() {
- return 1;
+    return 1;
 }
 
 size_t PubSubClient::write(uint8_t data) {
@@ -677,7 +667,7 @@ boolean PubSubClient::subscribe(const char* topic, uint8_t qos) {
 }
 
 boolean PubSubClient::unsubscribe(const char* topic) {
-	size_t topicLength = strnlen(topic, this->bufferSize);
+    size_t topicLength = strnlen(topic, this->bufferSize);
     if (topic == 0) {
         return false;
     }
@@ -725,7 +715,7 @@ uint16_t PubSubClient::writeString(const char* string, uint8_t* buf, uint16_t po
 
 boolean PubSubClient::connected() {
     boolean rc;
-    if (_client == NULL ) {
+    if (_client == NULL) {
         rc = false;
     } else {
         rc = (int)_client->connected();
@@ -784,14 +774,6 @@ boolean PubSubClient::setBufferSize(uint16_t size) {
         // Cannot set it back to 0
         return false;
     }
-#ifdef USE_STATIC_MEM
-    if (size > MQTT_MAX_PACKET_SIZE){
-        return false;
-    }else{
-        this->bufferSize = size;
-        return true;
-    }
-#else
     if (this->bufferSize == 0) {
         this->buffer = (uint8_t*)malloc(size);
     } else {
@@ -804,16 +786,17 @@ boolean PubSubClient::setBufferSize(uint16_t size) {
     }
     this->bufferSize = size;
     return (this->buffer != NULL);
-#endif
 }
 
 uint16_t PubSubClient::getBufferSize() {
     return this->bufferSize;
 }
+
 PubSubClient& PubSubClient::setKeepAlive(uint16_t keepAlive) {
     this->keepAlive = keepAlive;
     return *this;
 }
+
 PubSubClient& PubSubClient::setSocketTimeout(uint16_t timeout) {
     this->socketTimeout = timeout;
     return *this;
