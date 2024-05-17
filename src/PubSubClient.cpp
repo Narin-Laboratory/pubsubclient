@@ -445,7 +445,7 @@ boolean PubSubClient::loop() {
     loop_read();
     if (connected()) {
         unsigned long t = millis();
-        if ((t - lastInActivity > this->keepAlive*1000UL) || (t - lastOutActivity > this->keepAlive*1000UL)) {
+        if (((t - lastInActivity > this->keepAlive*1000UL) || (t - lastOutActivity > this->keepAlive*1000UL)) && keepAlive != 0) {
             if (pingOutstanding) {
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
@@ -504,7 +504,7 @@ boolean PubSubClient::publish(const char* topic, const uint8_t* payload, unsigne
 }
 
 boolean PubSubClient::publish_P(const char* topic, const char* payload, boolean retained) {
-    return publish_P(topic, (const uint8_t*)payload, payload ? strnlen(payload, this->bufferSize) : 0, retained);
+    return publish_P(topic, (const uint8_t*)payload, payload ? strnlen_P(payload, this->bufferSize) : 0, retained);
 }
 
 boolean PubSubClient::publish_P(const char* topic, const uint8_t* payload, unsigned int plength, boolean retained) {
