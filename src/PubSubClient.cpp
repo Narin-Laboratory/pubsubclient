@@ -427,7 +427,9 @@ boolean PubSubClient::loop_read() {
             if (_client->connected()) {
                 receive_buffer[0] = MQTTPINGRESP;
                 receive_buffer[1] = 0;
-                _client->write(receive_buffer,2);
+                if (_client->write(receive_buffer,2) != 0) {
+                  lastOutActivity = t;
+                }
             }
             break;
         } 
@@ -627,6 +629,9 @@ boolean PubSubClient::write(uint8_t header, uint8_t* buf, uint16_t length) {
         result = (rc == bytesToWrite);
         bytesRemaining -= rc;
         writeBuf += rc;
+        if (rc != 0) {
+            lastOutActivity = millis();
+        }
     }
     return result;
 #else
