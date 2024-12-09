@@ -208,7 +208,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
 #define MQTT_HEADER_VERSION_LENGTH 7
 #endif
             for (j = 0;j<MQTT_HEADER_VERSION_LENGTH;j++) {
-                this->receive_buffer[length++] = d[j];
+                this->send_buffer[length++] = d[j];
             }
 
             uint8_t v;
@@ -228,30 +228,30 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
                     v = v|(0x80>>1);
                 }
             }
-            this->receive_buffer[length++] = v;
+            this->send_buffer[length++] = v;
 
-            this->receive_buffer[length++] = ((this->keepAlive) >> 8);
-            this->receive_buffer[length++] = ((this->keepAlive) & 0xFF);
+            this->send_buffer[length++] = ((this->keepAlive) >> 8);
+            this->send_buffer[length++] = ((this->keepAlive) & 0xFF);
 
             CHECK_STRING_LENGTH(length,id)
-            length = writeString(id,this->receive_buffer,length);
+            length = writeString(id,this->send_buffer,length);
             if (willTopic) {
                 CHECK_STRING_LENGTH(length,willTopic)
-                length = writeString(willTopic,this->receive_buffer,length);
+                length = writeString(willTopic,this->send_buffer,length);
                 CHECK_STRING_LENGTH(length,willMessage)
-                length = writeString(willMessage,this->receive_buffer,length);
+                length = writeString(willMessage,this->send_buffer,length);
             }
 
             if(user != NULL) {
                 CHECK_STRING_LENGTH(length,user)
-                length = writeString(user,this->receive_buffer,length);
+                length = writeString(user,this->send_buffer,length);
                 if(pass != NULL) {
                     CHECK_STRING_LENGTH(length,pass)
                     length = writeString(pass,this->receive_buffer,length);
                 }
             }
 
-            write(MQTTCONNECT,this->receive_buffer,length-MQTT_MAX_HEADER_SIZE);
+            write(MQTTCONNECT,this->send_buffer,length-MQTT_MAX_HEADER_SIZE);
 
             lastInActivity = lastOutActivity = millis();
 
@@ -385,7 +385,7 @@ boolean PubSubClient::loop_read() {
     uint8_t type = receive_buffer[0]&0xF0;
 
     switch(type) {
-        case MQTTPUBLISH: 
+        case MQTTPUBLISH:
         {
             if (callback) {
                 const boolean msgId_present = (receive_buffer[0]&0x06) == MQTTQOS1;
@@ -421,7 +421,7 @@ boolean PubSubClient::loop_read() {
                 }
             }
             break;
-        } 
+        }
         case MQTTPINGREQ:
         {
             if (_client->connected()) {
@@ -430,7 +430,7 @@ boolean PubSubClient::loop_read() {
                 _client->write(receive_buffer,2);
             }
             break;
-        } 
+        }
         case MQTTPINGRESP:
         {
             pingOutstanding = false;
