@@ -247,7 +247,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
                 length = writeString(user,this->receive_buffer,length);
                 if(pass != NULL) {
                     CHECK_STRING_LENGTH(length,pass)
-                    length = writeString(pass,this->send_buffer,length);
+                    length = writeString(pass,this->receive_buffer,length);
                 }
             }
 
