@@ -268,6 +268,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
             write(MQTTCONNECT,this->send_buffer,length-MQTT_MAX_HEADER_SIZE);
 
             lastInActivity = lastOutActivity = millis();
+            pingOutstanding = false;
 
             while (!_client->available()) {
                 unsigned long t = millis();
@@ -283,7 +284,6 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
             if (len == 4) {
                 if (receive_buffer[3] == 0) {
                     lastInActivity = millis();
-                    pingOutstanding = false;
                     _state = MQTT_CONNECTED;
                     return true;
                 } else {
@@ -441,7 +441,9 @@ boolean PubSubClient::loop_read() {
             if (_client->connected()) {
                 receive_buffer[0] = MQTTPINGRESP;
                 receive_buffer[1] = 0;
-                _client->write(receive_buffer,2);
+                if (_client->write(receive_buffer,2) != 0) {
+                  lastOutActivity = t;
+                }
             }
             break;
         }
@@ -464,6 +466,7 @@ boolean PubSubClient::loop() {
             if (pingOutstanding) {
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
+                pingOutstanding = false;
                 return false;
             } else {
                 receive_buffer[0] = MQTTPINGREQ;
@@ -471,8 +474,8 @@ boolean PubSubClient::loop() {
                 if (_client->write(receive_buffer,2) != 0) {
                   lastOutActivity = t;
                   lastInActivity = t;
+                  pingOutstanding = true;
                 }
-                pingOutstanding = true;
             }
         }
         return true;
@@ -640,6 +643,9 @@ boolean PubSubClient::write(uint8_t header, uint8_t* buf, uint16_t length) {
         result = (rc == bytesToWrite);
         bytesRemaining -= rc;
         writeBuf += rc;
+        if (rc != 0) {
+            lastOutActivity = millis();
+        }
     }
     return result;
 #else
@@ -712,6 +718,7 @@ void PubSubClient::disconnect() {
     _client->flush();
     _client->stop();
     lastInActivity = lastOutActivity = millis();
+    pingOutstanding = false;
 }
 
 uint16_t PubSubClient::writeString(const char* string, uint8_t* buf, uint16_t pos) {
