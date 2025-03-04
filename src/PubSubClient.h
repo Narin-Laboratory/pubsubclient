@@ -156,12 +156,12 @@ public:
    boolean connect(const char* id, const char* user, const char* pass);
    boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
    boolean connect(const char* id, const char* user, const char* pass, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
-   boolean connect(const char* id, const char* user, const char* pass, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage, boolean cleanSession);
-   void disconnect();
+   virtual boolean connect(const char* id, const char* user, const char* pass, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage, boolean cleanSession);
+   virtual void disconnect();
    boolean publish(const char* topic, const char* payload);
    boolean publish(const char* topic, const char* payload, boolean retained);
    boolean publish(const char* topic, const uint8_t * payload, size_t plength);
-   boolean publish(const char* topic, const uint8_t * payload, size_t plength, boolean retained);
+   virtual boolean publish(const char* topic, const uint8_t * payload, size_t plength, boolean retained);
    boolean publish_P(const char* topic, const char* payload, boolean retained);
    boolean publish_P(const char* topic, const uint8_t * payload, size_t plength, boolean retained);
    // Start to publish a message.
@@ -182,11 +182,11 @@ public:
    // Returns the number of bytes written
    virtual size_t write(const uint8_t *buffer, size_t size);
    boolean subscribe(const char* topic);
-   boolean subscribe(const char* topic, uint8_t qos);
+   virtual boolean subscribe(const char* topic, uint8_t qos);
    boolean unsubscribe(const char* topic);
    boolean loop_read();
-   boolean loop();
-   boolean connected();
+   virtual boolean loop();
+   virtual boolean connected();
    int state();
 
 };
