@@ -146,6 +146,8 @@ public:
    PubSubClient& setKeepAlive(uint16_t keepAlive);
    PubSubClient& setSocketTimeout(uint16_t timeout);
 
+   void resetClient();
+   
    boolean setBufferSize(uint16_t receive_size, uint16_t send_size);
    uint16_t getSendBufferSize();
    uint16_t getReceiveBufferSize();

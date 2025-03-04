@@ -194,9 +194,11 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
 }
 
 boolean PubSubClient::connect(const char *id, const char *user, const char *pass, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage, boolean cleanSession) {
+    if (_client == NULL) {
+        return false;
+    }
     if (!connected()) {
         int result = 0;
-
 
         if(_client->connected()) {
             result = 1;
@@ -459,6 +461,9 @@ boolean PubSubClient::loop_read() {
 }
 
 boolean PubSubClient::loop() {
+    if (_client == NULL) {
+        return false;
+    }
     loop_read();
     if (connected()) {
         unsigned long t = millis();
@@ -711,6 +716,9 @@ boolean PubSubClient::unsubscribe(const char* topic) {
 }
 
 void PubSubClient::disconnect() {
+    if (_client == NULL) {
+        return;
+    }
     this->send_buffer[0] = MQTTDISCONNECT;
     this->send_buffer[1] = 0;
     _client->write(this->send_buffer,2);
@@ -780,6 +788,13 @@ PubSubClient& PubSubClient::setCallback(MQTT_CALLBACK_SIGNATURE) {
 PubSubClient& PubSubClient::setClient(Client& client){
     this->_client = &client;
     return *this;
+}
+
+viod PubSubClient::resetClient() {
+    if (connected()) {
+        disconnect();
+    }
+    this->_client = NULL;
 }
 
 PubSubClient& PubSubClient::setStream(Stream& stream){
