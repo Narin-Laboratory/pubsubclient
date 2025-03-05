@@ -790,7 +790,7 @@ PubSubClient& PubSubClient::setClient(Client& client){
     return *this;
 }
 
-viod PubSubClient::resetClient() {
+void PubSubClient::resetClient() {
     if (connected()) {
         disconnect();
     }
